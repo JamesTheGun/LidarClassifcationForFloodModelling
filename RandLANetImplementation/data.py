@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import pandas as pd
 from RandLANetImplementation.constants import HYPER_PARAMETERS, TRAIN_PER_HOLDOUT, POSITIVE_CLASS_DIR, NEGATIVE_CLASS_DIR, TRAIN_PER_TEST_FOLD
 from typing import List, Tuple
+from RandLANetImplementation.constants import HYPER_PARAMETERS, TRAIN_PER_HOLDOUT, POSITIVE_CLASS_DIR, NEGATIVE_CLASS_DIR, TRAIN_PER_TEST_FOLD
+from typing import List, Tuple
 import torch
 from sklearn.cluster import KMeans
 import laspy
