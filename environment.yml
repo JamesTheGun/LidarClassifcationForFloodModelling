@@ -1,0 +1,33 @@
+name: lidar_env_actl
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - gdal
+  - fiona
+  - geopandas
+  - shapely
+  - pyproj
+  - rasterio
+  - pdal
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - tqdm
+  - matplotlib
+  - seaborn
+
+  - pip
+
+  - pip:
+      - torch>=2.3
+      - torchvision>=0.18
+      - torchaudio>=2.3
+      - laspy[laszip]
+      - pyntcloud
+      - open3d
+      - faiss-cpu
+      - tensorboard

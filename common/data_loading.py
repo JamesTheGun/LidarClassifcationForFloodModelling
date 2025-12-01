@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import pandas as pd
 import numpy as np
-from constants import POSITIVE_CLASS_DIR, NEGATIVE_CLASS_DIR, KEEP_DIMS
+from .constants import POSITIVE_CLASS_DIR, NEGATIVE_CLASS_DIR, KEEP_DIMS
 from typing import List, Tuple
 import torch
 from sklearn.cluster import KMeans
@@ -76,4 +76,4 @@ def las_split_kmeans(points: torch.Tensor,
 
 def quick_tensor():
     data = load_combined_pos_neg_df()
-    return(build_lidar_tensor)
+    return(build_lidar_tensor(data))

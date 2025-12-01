@@ -1,3 +1,5 @@
 POSITIVE_CLASS_DIR = "data/POSITIVE.las"
 NEGATIVE_CLASS_DIR = "data/NEGATIVE.las"
+POSITIVE_GEOTIFF_DIR = "data/POSITIVE.tif"
+NEGATIVE_GEOTIFF_DIR = "data/NEGATIVE.tif"
 KEEP_DIMS = ["x", "y", "z", "intensity"]
