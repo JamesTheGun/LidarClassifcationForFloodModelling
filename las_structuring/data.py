@@ -1,115 +1,41 @@
 from dataclasses import dataclass
 import pandas as pd
-import numpy as np
-from RandLANetImplementation.constants import HYPER_PARAMETERS, TRAIN_PER_HOLDOUT, POSITIVE_CLASS_DIR, NEGATIVE_CLASS_DIR, TRAIN_PER_TEST_FOLD, KEEP_DIMS
+from common.data_loading import build_lidar_tensor
 from typing import List, Tuple
 import torch
-from sklearn.cluster import KMeans
-import laspy
-
-def load_combined_pos_neg_df() -> pd.DataFrame:
-    pos_class = laspy.read(POSITIVE_CLASS_DIR)
-    neg_class = laspy.read(NEGATIVE_CLASS_DIR)
-    pos_class = pd.DataFrame({
-        dim.name: pos_class[dim.name]
-        for dim in pos_class.point_format.dimensions
-        if dim.name in KEEP_DIMS
-    })
-
-    neg_class = pd.DataFrame({
-        dim.name: neg_class[dim.name]
-        for dim in neg_class.point_format.dimensions
-        if dim.name in KEEP_DIMS
-    })
-    pos_class["label"] = 1
-    neg_class["label"] = 0
-    combined = pd.concat([pos_class, neg_class])
-    combined = combined.infer_objects()
-    combined = pd.concat([pos_class, neg_class])
-    combined = combined.astype(float)
-    #TO DO... unfuck this coercsion thing, like we need to make
-    #sure we are actually doing this right... for now just fucking
-    #stuff everything into numeric...
-    combined = combined.dropna(axis=1)
-    return combined
-
-def build_lidar_tensor(las_df: pd.DataFrame) -> torch.Tensor:
-    #consider using mixed procision for some vars in future...
-    tensor = torch.tensor(las_df.to_numpy(), dtype=torch.float32)
-    return tensor
-
-def las_split_kmeans(points: torch.Tensor,
-                     split_count: int,
-                     sample_size: int = 100_000) -> List[torch.Tensor]:
-
-    coords = points[:, :2].cpu().numpy().astype(np.float32, copy=False)
-    N = coords.shape[0]
-
-    if N > sample_size:
-        idx = np.random.choice(N, sample_size, replace=False)
-        coords_sample = coords[idx]
-    else:
-        coords_sample = coords
-        idx = np.arange(N)
-
-    km = KMeans(
-        n_clusters=split_count,
-        init="k-means++",
-        n_init=5,
-        max_iter=50,
-        tol=1e-3,
-        algorithm="elkan"
-    )
-
-    km.fit(coords_sample)
-
-    labels = km.predict(coords)
-
-    labels = torch.from_numpy(labels).long()
-
-    splits = []
-    for f in range(split_count):
-        idx_f = torch.nonzero(labels == f, as_tuple=False).squeeze(1)
-        splits.append(idx_f)
-
-    return splits
+from common.data_loading import load_combined_pos_neg_df
 
 @dataclass
 class modelData:
     """prepare and store data with methods for retreiving train/test split"""
-
     data: pd.DataFrame = None
     train_set: torch.Tensor = None
     test_set: torch.Tensor = None
     hyper_params: dict = None
     folds_train: List[torch.Tensor] = None
     folds_test: List[torch.Tensor] = None
+    folds: list[torch.Tensor] = None
     fold_index: int = 0
 
     def prepare_data(self):
         self.data = load_combined_pos_neg_df()
 
-    def prepare_hyper_params(self):
+    def set_hyper_params(self, HYPER_PARAMETERS):
         self.hyper_params = HYPER_PARAMETERS
 
     def prepare_train_test(self, train_per_holdout: float = None):
-        if not train_per_holdout:
-            train_per_holdout = TRAIN_PER_HOLDOUT
         self.train_set, self.test_set = self._get_train_test_tensors(
             self.data, train_per_holdout
         )
 
-    def prepare_folds(self, train_per_test_fold: int = None):
-        if not train_per_test_fold:
-            train_per_test_fold = TRAIN_PER_TEST_FOLD
-        print(type(self.train_set))
-        self.folds = self._get_folds(self.train_set, train_per_test_fold)
+    def prepare_folds(train_test_ratio_fold):
+        pass
 
-    def new_split(self, train_to_hold_out: int = None, train_test_ratio_fold: int = None):
+    def new_split(self, hyper_params: dict, train_to_hold_out_ratio: int = None, train_test_ratio_fold: int = None):
         if (self.data == None):
             self.prepare_data()
-        self.prepare_hyper_params()
-        self.prepare_train_test(train_to_hold_out)
+        self.set_hyper_params(hyper_params)
+        self.prepare_train_test(train_to_hold_out_ratio)
         self.prepare_folds(train_test_ratio_fold)
 
     @classmethod
@@ -119,16 +45,11 @@ class modelData:
 
     @staticmethod
     def _get_folds(data: torch.Tensor, train_per_holdout: int) -> List[torch.Tensor]:
-        return las_split_kmeans(data, train_per_holdout)
+        pass
     
     @staticmethod
     def _get_train_test_sets(data: torch.Tensor, test_per_train: int = 7) -> Tuple[torch.Tensor]:
-        splits = las_split_kmeans(data, test_per_train + 1)
-        test_idxs = splits[0]
-        train_idxs = torch.cat(splits[1:], dim=0)
-        train = data[train_idxs]
-        test = data[test_idxs]
-        return train, test
+        pass
 
     def next_fold(self) -> torch.Tensor | None:
         if self.fold_index > len(self.folds):
