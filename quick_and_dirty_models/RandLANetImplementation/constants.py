@@ -9,11 +9,6 @@ HYPER_PARAMETERS = {}
 STRIDE = 30
 WINDOW_SIZE = 500
 
-POSITIVE_CLASS_DIR = "RandLANetImplementation/data/POSITIVE.las"
-NEGATIVE_CLASS_DIR = "RandLANetImplementation/data/NEGATIVE.las"
-
-
 NIEGBBOUR_COUNT = 4
-
 
 KEEP_DIMS = ["x", "y", "z", "intensity"]

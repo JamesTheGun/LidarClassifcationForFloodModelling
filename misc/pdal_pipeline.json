@@ -1,0 +1,23 @@
+{
+    "pipeline": [
+        "PLACEHOLDER_LAS",
+        {
+            "type": "filters.range",
+            "limits": "Classification[2:2]"
+        },
+        {
+            "type": "writers.gdal",
+            "filename": "PLACEHOLDER_OUT",
+            "resolution": 0.5,
+            "dimension": "Z",
+            "output_type": "mean",
+            "gdaldriver": "GTiff",
+            "data_type": "float32",
+            "metadata": {
+                "AREA_OR_POINT": "Area",
+                "DESCRIPTION": "Elevation (Z)",
+                "UNITS": "metre"
+            }
+        }
+    ]
+}
