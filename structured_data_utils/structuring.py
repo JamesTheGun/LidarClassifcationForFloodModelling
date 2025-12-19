@@ -90,6 +90,7 @@ def tensor_from_geotiff(geotiff_path: str) -> torch.Tensor:
     with rasterio.open(geotiff_path) as reader:
         data = reader.read(masked=True)  # shape: (C, H, W), masked array
     data = data.filled(np.nan)
+    data = data[0] #we take only the first band -- WE ASSUME THIS IS ELEVATION! TO DO: include this important detail in read me!
     tensor = torch.from_numpy(data).float()
     return tensor
 
