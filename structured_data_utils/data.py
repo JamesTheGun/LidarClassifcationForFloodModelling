@@ -1,21 +1,27 @@
 from typing import List, Tuple
 from dataclasses import dataclass
-from structuring import get_negative_geotiff_tensor, get_positive_geotiff_tensor, get_combined_geotiff_tensor
 import pandas as pd
 import torch
 import subprocess
+from structured_data_utils.config.constants import ESPSG, GEOTIFF_LOCATIONS_TO_CORRESPONDING_STANDARDISED_LOCATION, RES
+from structured_data_utils.structuring import get_negative_geotiff_tensor, get_positive_geotiff_tensor, get_combined_geotiff_tensor
 
-def standardise_geotiffs():
-    import subprocess
-    subprocess.run([
+def standardise_geotiff(target_dir: str, write_dir: str):
+    print(subprocess.run([
         "gdalwarp",
-        "-t_srs", "EPSG:XXXX",
-        "-tr", "1", "1",
+        "-t_srs", ESPSG,
+        "-tr", RES, RES,
         "-r", "bilinear",
         "-overwrite",
-        "in.tif",
-        "out.tif",
-    ], check=True)
+        target_dir,
+        write_dir,
+    ], check=False,
+    capture_output=True,
+    text=True))
+
+def standardise_core_geotiffs():
+    for target, write_dir in GEOTIFF_LOCATIONS_TO_CORRESPONDING_STANDARDISED_LOCATION.items():
+        standardise_geotiff(target, write_dir)
 
 def load_combined_pos_neg_df_structured() -> pd.DataFrame:
     positive = get_positive_geotiff_tensor()

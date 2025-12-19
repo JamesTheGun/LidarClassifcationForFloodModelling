@@ -1,3 +1,4 @@
+from typing import Tuple
 import pandas as pd
 import json
 import pdal
@@ -48,7 +49,7 @@ class GeotiffGeneration():
 
     @classmethod
     def generate_geotiffs(cls) -> None:
-        template_text = cls._load_pipeline_template(r"misc\pdal_pipeline.json")
+        template_text = cls._load_pipeline_template(r"structured_data_utils\config\pdal_pipeline.json")
 
         cls._generate_geotiffs_for_dir(
             template_text,
@@ -71,7 +72,7 @@ class GeotiffGeneration():
 def two_dimensionify(las_data: pd.DataFrame) -> torch.Tensor:
     pass
 
-def get_geotiff_true_origin(geotiff_path: str) -> Tuple[CRS, Tuple[float, float], float, float]:
+def get_geotiff_true_origin(geotiff_path: str) -> Tuple[Tuple[float, float], float, float]:
     with rasterio.open(geotiff_path) as reader:
         crs = reader.crs
         transform: Affine = reader.transform
@@ -83,7 +84,7 @@ def get_geotiff_true_origin(geotiff_path: str) -> Tuple[CRS, Tuple[float, float]
         px_width: float = transform.a
         px_height: float = transform.e
 
-    return crs, (x_origin, y_origin), px_width, px_height
+    return (x_origin, y_origin), px_width, px_height
 
 def tensor_from_geotiff(geotiff_path: str) -> torch.Tensor:
     with rasterio.open(geotiff_path) as reader:
