@@ -4,10 +4,10 @@ import pandas as pd
 import torch
 import subprocess
 from structured_data_utils.config.constants import ESPSG, GEOTIFF_LOCATIONS_TO_CORRESPONDING_STANDARDISED_LOCATION, RES
-from structured_data_utils.structuring import get_negative_geotiff_tensor, get_positive_geotiff_tensor, get_combined_geotiff_tensor
+from structured_data_utils.structuring import get_negative_geotiff_tensor_and_offset, get_positive_geotiff_tensor_and_offset, get_combined_geotiff_tensor_and_offset
 
 def standardise_geotiff(target_dir: str, write_dir: str):
-    print(subprocess.run([
+    subprocess.run([
         "gdalwarp",
         "-t_srs", ESPSG,
         "-tr", RES, RES,
@@ -17,19 +17,26 @@ def standardise_geotiff(target_dir: str, write_dir: str):
         write_dir,
     ], check=False,
     capture_output=True,
-    text=True))
+    text=True)
 
 def standardise_core_geotiffs():
     for target, write_dir in GEOTIFF_LOCATIONS_TO_CORRESPONDING_STANDARDISED_LOCATION.items():
         standardise_geotiff(target, write_dir)
 
 def load_combined_pos_neg_df_structured() -> pd.DataFrame:
-    positive = get_positive_geotiff_tensor()
-    combined = get_combined_geotiff_tensor()
+    positive = get_positive_geotiff_tensor_and_offset()
+    combined = get_combined_geotiff_tensor_and_offset()
     label = torch.full_like(combined[:1], 0)
     combined = torch.cat([label,combined], dim=0)
-    
 
+    base_tensor = torch.tensor((0,*combined.shape[1:]), dtype=combined.dtype, device=combined.device)
+    all_negative: torch.Tensor = base_tensor.new_zeros((0,*combined.shape[1:]))
+    all_positive: torch.Tensor = base_tensor.new_ones((0,*combined.shape[1:]))
+    combined = torch.cat([combined, all_negative], dim=0)
+    positive = torch.cat([positive, all_positive], dim=0)
+    mask = positive != 0
+    combined[mask] = positive[mask]
+    
 @dataclass
 class modelData:
     """prepare and store data with methods for retreiving train/test split"""
