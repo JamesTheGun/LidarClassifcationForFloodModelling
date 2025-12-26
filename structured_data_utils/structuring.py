@@ -72,17 +72,17 @@ class GeotiffGeneration():
 def two_dimensionify(las_data: pd.DataFrame) -> torch.Tensor:
     pass
 
-def get_geotiff_true_origin(geotiff_path: str) -> Tuple[float, float]:
+def get_geotiff_true_origin(geotiff_path: str) -> Tuple[int, int]:
     with rasterio.open(geotiff_path) as reader:
         transform: Affine = reader.transform
 
-        x_origin: float
-        y_origin: float
+        x_origin: int
+        y_origin: int
         x_origin, y_origin = transform * (0, 0)
 
-    return x_origin, y_origin
+    return int(x_origin), int(y_origin)
 
-def tensor_and_offset_from_geotiff(geotiff_path: str) -> Tuple[torch.Tensor, Tuple[float,float]]:
+def tensor_and_offset_from_geotiff(geotiff_path: str) -> Tuple[torch.Tensor, Tuple[int,int]]:
     with rasterio.open(geotiff_path) as reader:
         data = reader.read(masked=True)
     data = data[0] #we take only the first band -- WE ASSUME THIS IS ELEVATION! TO DO: include this important detail in read me!
@@ -90,11 +90,11 @@ def tensor_and_offset_from_geotiff(geotiff_path: str) -> Tuple[torch.Tensor, Tup
     true_origin = get_geotiff_true_origin(geotiff_path)
     return tensor, true_origin
 
-def get_negative_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[float,float]]:
+def get_negative_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[int,int]]:
     return tensor_and_offset_from_geotiff(NEGATIVE_GEOTIFF_DIR)
 
-def get_positive_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[float,float]]:
+def get_positive_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[int,int]]:
     return tensor_and_offset_from_geotiff(POSITIVE_GEOTIFF_DIR)
 
-def get_combined_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[float,float]]:
+def get_combined_geotiff_tensor_and_offset() -> Tuple[torch.Tensor, Tuple[int,int]]:
     return tensor_and_offset_from_geotiff(COMBINED_GEOTIFF_DIR)
